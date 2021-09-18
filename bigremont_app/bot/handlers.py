@@ -68,3 +68,24 @@ class UpdateHandler(HandlerInterface):
         if self.update.message:
             self.type = "message"
             self.handler = MessageHandler(update)
+
+    def get_user_id(self):
+        return self.handler.get_user_id()
+
+    def get_first_name(self):
+        return self.handler.get_first_name()
+
+    def get_last_name(self):
+        return self.handler.get_last_name()
+
+    def get_username(self):
+        return self.handler.get_username()
+
+    def get_text(self):
+        return self.handler.get_text()
+
+    def get_message_id(self):
+        return self.handler.get_message_id()
+
+    def get_callback(self):
+        return self.handler.get_callback()
