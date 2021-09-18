@@ -2,10 +2,11 @@ from typing import Union
 
 import telebot
 
-#from telegram_bot.user import User
-#from webhook.serializers import UpdateSerializer
-from telebot.types import ReplyKeyboardMarkup, InlineKeyboardMarkup
+# from telegram_bot.user import User
+# from webhook.serializers import UpdateSerializer
+from telebot.types import ReplyKeyboardMarkup, InlineKeyboardMarkup, Message
 
+from bigremont_app.bot.user import User
 from bigremont_app.serializers import UpdateTelegramSerializer
 
 
@@ -33,10 +34,21 @@ class TelegramContext:
             markup.row(*row)
         return markup
 
+    def delete_message(self,
+                       chat_id: int,
+                       message_id: int):
+        """
+        Удаляет сообщение из чата
+        :param chat_id: id чата
+        :param message_id:
+        :return:
+        """
+        self.bot.delete_message(chat_id=chat_id, message_id=message_id)
+
     def send_message(self,
                      receiver: int,
                      text: str,
-                     markup:  Union[ReplyKeyboardMarkup, InlineKeyboardMarkup] = None) -> None:
+                     markup: Union[ReplyKeyboardMarkup, InlineKeyboardMarkup] = None) -> Message:
         """
         Отправляет сообщение пользователю в Telegram.
         :param receiver: id пользователя в Telegram
@@ -53,7 +65,7 @@ class TelegramContext:
             'reply_markup': markup,
             'timeout': 1
         }
-        self.bot.send_message(**kwargs)
+        return self.bot.send_message(**kwargs)
 
     def edit_message(self, receiver: int, text: str, message_id: int):
         kwargs = {
@@ -63,10 +75,10 @@ class TelegramContext:
         }
         self.bot.edit_message_text(**kwargs)
 
-    # @staticmethod
-    # def get_user(update: UpdateTelegramSerializer):
-    #     user = User(update)
-    #     user.init_from_db()
-    #     if not user.initialized:
-    #         user.init_from_update()
-    #     return user
+    @staticmethod
+    def get_user(update: UpdateTelegramSerializer):
+        user = User(update)
+        user.init_from_db()
+        if not user.initialized:
+            user.init_from_update()
+        return user
