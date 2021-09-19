@@ -27,9 +27,18 @@ class Material(models.Model):
         ('ведро', 'ведро'),
         ('м', 'м'),
     ]
-    name = models.CharField(max_length=250, db_index=True, verbose_name='Наименование материала')
-    unit_measurement = models.CharField(max_length=100, verbose_name='Единица измерения')
+    name = models.CharField(max_length=250, db_index=True, verbose_name='Наименование материала', unique=True)
+    unit_measurement = models.CharField(max_length=100, verbose_name='Единица измерения', choices=UNIT_OF_MEASUREMENT)
 
     class Meta:
         verbose_name = 'Материал'
         verbose_name_plural = 'Материалы'
+
+
+class WorkType(models.Model):
+    name = models.CharField(max_length=250, db_index=True, verbose_name='Наименование', unique=True)
+    materials = models.ManyToManyField(Material)
+
+    class Meta:
+        verbose_name = 'Вид работ'
+        verbose_name_plural = 'Виды работ'
