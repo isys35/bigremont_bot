@@ -1,3 +1,4 @@
+from django.core.paginator import Page
 from telebot.types import ReplyKeyboardRemove
 
 
@@ -51,6 +52,18 @@ class BotKeyboard(State):
         :return: None
         """
         self.row('🏠 Выбрать объект')
+
+    @keyboard
+    def objects(self, object_page: Page):
+        objects_keys = [str(remont_object.id) for remont_object in object_page.object_list]
+        self.row(*objects_keys)
+        if object_page.has_next() and object_page.has_previous():
+            self.row('⬅️Предыдущая страница', 'Следующая страница ▶️')
+        elif object_page.has_next():
+            self.row('Следующая страница ▶️')
+        elif object_page.has_previous():
+            self.row('⬅️ Предыдущая страница')
+        self.row('🏠 Главное меню')
 
     def clear_keyboard(self):
         return ReplyKeyboardRemove()
