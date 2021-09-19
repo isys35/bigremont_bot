@@ -30,6 +30,9 @@ class Material(models.Model):
     name = models.CharField(max_length=250, db_index=True, verbose_name='Наименование материала', unique=True)
     unit_measurement = models.CharField(max_length=100, verbose_name='Единица измерения', choices=UNIT_OF_MEASUREMENT)
 
+    def __str__(self):
+        return self.name
+
     class Meta:
         verbose_name = 'Материал'
         verbose_name_plural = 'Материалы'
@@ -37,7 +40,10 @@ class Material(models.Model):
 
 class WorkType(models.Model):
     name = models.CharField(max_length=250, db_index=True, verbose_name='Наименование', unique=True)
-    materials = models.ManyToManyField(Material)
+    materials = models.ManyToManyField(Material, verbose_name='Материалы', blank=True, null=True)
+
+    def __str__(self):
+        return self.name
 
     class Meta:
         verbose_name = 'Вид работ'

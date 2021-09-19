@@ -1,5 +1,6 @@
 from typing import Union
 
+from django.template.loader import render_to_string
 from telebot.types import ReplyKeyboardMarkup, InlineKeyboardMarkup
 
 from bigremont_app.bot.keyboard import BotKeyboard
@@ -52,3 +53,13 @@ class Bot:
         return self.context.edit_message(self.user.id,
                                          text,
                                          message_id)
+
+    def error_500(self):
+        """
+        Отправляет пользщователю сообщенеие, если возникает
+        ошибка при обработке запроса
+        :return: None
+        """
+        text_message = render_to_string('error_500_message.html')
+        self.send_message(text_message, self.keyboard.main())
+        self.user.save_state('/')
