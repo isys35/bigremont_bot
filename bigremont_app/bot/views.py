@@ -26,17 +26,17 @@ def select_object(bot: Bot, object_page_number=None, **kwargs):
     bot.user.save_state(f'/выбрать объект/{page}')
 
 
-def next_page_select_object(bot: Bot, object_page_number):
+def next_page_select_object(bot: Bot, object_page_number: str):
     page = int(object_page_number) + 1
     select_object(bot, page)
 
 
-def previos_page_select_object(bot: Bot, object_page_number):
+def previos_page_select_object(bot: Bot, object_page_number: str):
     page = int(object_page_number) - 1
     select_object(bot, page)
 
 
-def select_worktype(bot: Bot, object_page_number, object_id, work_type_page_number=None):
+def select_worktype(bot: Bot, object_page_number: str, object_id: str, work_type_page_number: str = None):
     # TODO: Можно зарефакторить, но лучше это сделать после написания клааса для вьюх
     remont_object = RemontObject.objects.filter(id=object_id)
     if not object:
@@ -56,3 +56,13 @@ def select_worktype(bot: Bot, object_page_number, object_id, work_type_page_numb
     message = render_to_string('worktypes.html', context=сontext)
     bot.send_message(message, bot.keyboard.objects(paginator.page(page)))
     bot.user.save_state(f'/выбрать объект/{object_page_number}/{object_id}/{page}')
+
+
+def next_page_select_worktype(bot: Bot, object_page_number: str, object_id: str, work_type_page_number: str):
+    page = int(work_type_page_number) + 1
+    select_worktype(bot, object_page_number, object_id, str(page))
+
+
+def previos_page_select_worktype(bot: Bot, object_page_number: str, object_id: str, work_type_page_number: str):
+    page = int(work_type_page_number) - 1
+    select_worktype(bot, object_page_number, object_id, str(page))
