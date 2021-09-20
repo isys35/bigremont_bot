@@ -1,0 +1,9 @@
+Заявка № <b>{{ application.id }}</b>
+Объект: <b>{{ object.name }}</b>
+Тип работ: <b>{{ work_type.name }}</b>
+{% if added_materials %}{% for added_material in added_materials %}
+    • {{ added_material.material_name }} {{ added_material.count }} {{ added_material.material_unit }}{% endfor %}{% endif %}
+Выберите из списка материал для добавления в заявку:
+{% for material in materials %}
+    {{ material.id }} - {{ material.name }}{% endfor %}
+

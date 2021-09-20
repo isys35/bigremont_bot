@@ -2,7 +2,7 @@ from django.core.paginator import Paginator
 from django.template.loader import render_to_string
 
 from bigremont_app.bot.bot import save_state, Bot
-from bigremont_app.models import RemontObject, WorkType
+from bigremont_app.models import RemontObject, WorkType, Material, Application, ApplicationMaterial
 from bigremont_bot import settings
 
 
@@ -38,12 +38,7 @@ def previos_page_select_object(bot: Bot, object_page_number: str):
 
 def select_worktype(bot: Bot, object_page_number: str, object_id: str, work_type_page_number: str = None):
     # TODO: Можно зарефакторить, но лучше это сделать после написания клааса для вьюх
-    remont_object = RemontObject.objects.filter(id=object_id)
-    if not object:
-        bot.error_500()
-        return
-    else:
-        remont_object = remont_object.first()
+    remont_object = RemontObject.objects.get(id=object_id)
     page = work_type_page_number or 1
     work_types = WorkType.objects.all().order_by('id')
     if not work_types:
@@ -66,3 +61,38 @@ def next_page_select_worktype(bot: Bot, object_page_number: str, object_id: str,
 def previos_page_select_worktype(bot: Bot, object_page_number: str, object_id: str, work_type_page_number: str):
     page = int(work_type_page_number) - 1
     select_worktype(bot, object_page_number, object_id, str(page))
+
+
+def select_material(bot: Bot, **params):
+    object_page_number = params.get('object_page_number')
+    work_type_page_number = params.get('worktype_page_number')
+    object_id = params.get('object_id')
+    worktype_id = params.get('worktype_id')
+    material_page_number = params.get('material_page_number')
+    application_id = params.get('application_id')
+    remont_object = RemontObject.objects.get(id=object_id)
+    worktype = WorkType.objects.get(id=worktype_id)
+    if not application_id:
+        application = Application.objects.create(remont_object_id=object_id, worktype_id=worktype_id)
+        added_materials = None
+    else:
+        application = Application.objects.get(id=application_id)
+        added_materials = ApplicationMaterial.objects.\
+            annotate(material_name='material__name', material_unit='material__unit_measurement').\
+            filter(application_id=application_id)
+    page = material_page_number or 1
+    materials = worktype.materials.all().order_by('id')
+    if not materials:
+        bot.send_message("В базе нету материалов 😔", bot.keyboard.main())
+        bot.user.save_state("/")
+        return
+    paginator = Paginator(materials, settings.PAGINATOR_SIZE)
+    сontext = {'object': remont_object,
+               'work_type': worktype,
+               'application': application,
+               'added_materials': added_materials,
+               'materials': paginator.page(page)}
+    message = render_to_string('application.html', context=сontext)
+    bot.send_message(message, bot.keyboard.objects(paginator.page(page)))
+    state = f'/выбрать объект/{object_page_number}/{object_id}/{work_type_page_number}/{worktype_id}/{page}/{application.id}'
+    bot.user.save_state(state)
