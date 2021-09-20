@@ -48,3 +48,25 @@ class WorkType(models.Model):
     class Meta:
         verbose_name = 'Вид работ'
         verbose_name_plural = 'Виды работ'
+
+
+class Application(models.Model):
+    remont_object = models.ForeignKey(RemontObject, verbose_name='Объект', on_delete=models.CASCADE)
+    worktype = models.ForeignKey(WorkType, verbose_name='Вид работ', on_delete=models.CASCADE)
+    date_create = models.DateTimeField(verbose_name='Время создания заявки', auto_now_add=True)
+    date_of_delivery = models.DateTimeField(blank=True, null=True)
+    materials = models.ManyToManyField(Material, verbose_name='Материалы', blank=True, null=True,
+                                       through='ApplicationMaterial')
+
+    def __str__(self):
+        return f"Заявка {self.id}"
+
+    class Meta:
+        verbose_name = 'Заявка'
+        verbose_name_plural = 'Заявки'
+
+
+class ApplicationMaterial(models.Model):
+    material = models.ForeignKey(Material, on_delete=models.CASCADE)
+    application = models.ForeignKey(Application, on_delete=models.CASCADE)
+    count = models.IntegerField(default=0)
