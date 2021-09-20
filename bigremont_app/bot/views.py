@@ -94,5 +94,22 @@ def select_material(bot: Bot, **params):
                'materials': paginator.page(page)}
     message = render_to_string('application.html', context=сontext)
     bot.send_message(message, bot.keyboard.objects(paginator.page(page)))
-    state = f'/выбрать объект/{object_page_number}/{object_id}/{work_type_page_number}/{worktype_id}/{page}/{application.id}'
+    state = f'/выбрать объект/{object_page_number}/{object_id}/{work_type_page_number}/{worktype_id}/{application.id}/{page}'
     bot.user.save_state(state)
+
+
+# TODO: слишком длинный список параметров,
+#  из **kwargs тоже не особо хочется доставать.
+#  Возможно это исправится, если вьхи оформить через класс
+def next_page_select_material(bot: Bot, **kwargs):
+    material_page_number = kwargs.get('material_page_number')
+    page = int(material_page_number) + 1
+    kwargs['material_page_number'] = str(page)
+    select_worktype(bot, **kwargs)
+
+
+def previos_page_select_material(bot: Bot, **kwargs):
+    material_page_number = kwargs.get('material_page_number')
+    page = int(material_page_number) - 1
+    kwargs['material_page_number'] = str(page)
+    select_worktype(bot, **kwargs)
