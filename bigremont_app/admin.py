@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from bigremont_app.models import RemontObject, WorkType, Material
+from bigremont_app.models import RemontObject, WorkType, Material, Recipient
 
 
 class Materialinline(admin.StackedInline):
@@ -15,3 +15,4 @@ class WorkTypeInline(admin.ModelAdmin):
 admin.site.register(RemontObject)
 admin.site.register(Material)
 admin.site.register(WorkType, WorkTypeInline)
+admin.site.register(Recipient)

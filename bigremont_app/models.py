@@ -5,6 +5,22 @@ class TelegramUser(models.Model):
     username = models.CharField(max_length=100, db_index=True, default=None)
     state = models.CharField(max_length=200, default='/')
 
+    def __str__(self):
+        return f'{self.id} {self.username}'
+
+    class Meta:
+        verbose_name = 'Пользователь бота'
+        verbose_name_plural = 'Пользователи бота'
+
+
+class Recipient(models.Model):
+    telegram_user = models.OneToOneField(TelegramUser, verbose_name="пользователь бота", on_delete=models.CASCADE,
+                                         unique=True)
+
+    class Meta:
+        verbose_name = 'Получатель заявок'
+        verbose_name_plural = 'Получатели заявок'
+
 
 class RemontObject(models.Model):
     name = models.CharField(max_length=100, db_index=True, verbose_name='Наименование')
@@ -40,7 +56,7 @@ class Material(models.Model):
 
 class WorkType(models.Model):
     name = models.CharField(max_length=250, db_index=True, verbose_name='Наименование', unique=True)
-    materials = models.ManyToManyField(Material, verbose_name='Материалы', blank=True, null=True)
+    materials = models.ManyToManyField(Material, verbose_name='Материалы', blank=True)
 
     def __str__(self):
         return self.name
@@ -55,7 +71,7 @@ class Application(models.Model):
     worktype = models.ForeignKey(WorkType, verbose_name='Вид работ', on_delete=models.CASCADE)
     date_create = models.DateTimeField(verbose_name='Время создания заявки', auto_now_add=True)
     date_of_delivery = models.DateTimeField(blank=True, null=True)
-    materials = models.ManyToManyField(Material, verbose_name='Материалы', blank=True, null=True,
+    materials = models.ManyToManyField(Material, verbose_name='Материалы', blank=True,
                                        through='ApplicationMaterial')
 
     def __str__(self):

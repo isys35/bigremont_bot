@@ -5,7 +5,7 @@ from django.template.loader import render_to_string
 from telegram_bot_calendar import DetailedTelegramCalendar
 
 from bigremont_app.bot.bot import save_state, Bot
-from bigremont_app.models import RemontObject, WorkType, Material, Application, ApplicationMaterial
+from bigremont_app.models import RemontObject, WorkType, Material, Application, ApplicationMaterial, Recipient
 from bigremont_bot import settings
 
 
@@ -177,4 +177,7 @@ def select_date_of_delivery(bot: Bot, **params):
                'selected_materials': materials}
     message = render_to_string('application_final.html', context=сontext)
     bot.send_message(message, bot.keyboard.clear_keyboard())
+    recepients = Recipient.objects.all()
+    for recepient in recepients:
+        bot.context.send_message(recepient.telegram_user_id, message)
     main_menu(bot, **params)
