@@ -65,7 +65,7 @@ def previos_page_select_worktype(bot: Bot, object_page_number: str, object_id: s
 
 def select_material(bot: Bot, **params):
     object_page_number = params.get('object_page_number')
-    work_type_page_number = params.get('worktype_page_number')
+    worktype_page_number = params.get('worktype_page_number')
     object_id = params.get('object_id')
     worktype_id = params.get('worktype_id')
     material_page_number = params.get('material_page_number')
@@ -77,9 +77,7 @@ def select_material(bot: Bot, **params):
         added_materials = None
     else:
         application = Application.objects.get(id=application_id)
-        added_materials = ApplicationMaterial.objects.\
-            annotate(material_name='material__name', material_unit='material__unit_measurement').\
-            filter(application_id=application_id)
+        added_materials = ApplicationMaterial.objects.filter(application_id=application_id).select_related('material')
     page = material_page_number or 1
     materials = worktype.materials.all().order_by('id')
     if not materials:
@@ -94,22 +92,48 @@ def select_material(bot: Bot, **params):
                'materials': paginator.page(page)}
     message = render_to_string('application.html', context=сontext)
     bot.send_message(message, bot.keyboard.objects(paginator.page(page)))
-    state = f'/выбрать объект/{object_page_number}/{object_id}/{work_type_page_number}/{worktype_id}/{application.id}/{page}'
+    state = f'/выбрать объект/{object_page_number}/{object_id}/{worktype_page_number}/{worktype_id}/{application.id}/{page}'
     bot.user.save_state(state)
 
 
 # TODO: слишком длинный список параметров,
 #  из **kwargs тоже не особо хочется доставать.
 #  Возможно это исправится, если вьхи оформить через класс
-def next_page_select_material(bot: Bot, **kwargs):
-    material_page_number = kwargs.get('material_page_number')
+def next_page_select_material(bot: Bot, **params):
+    material_page_number = params.get('material_page_number')
     page = int(material_page_number) + 1
-    kwargs['material_page_number'] = str(page)
-    select_worktype(bot, **kwargs)
+    params['material_page_number'] = str(page)
+    select_worktype(bot, **params)
 
 
-def previos_page_select_material(bot: Bot, **kwargs):
-    material_page_number = kwargs.get('material_page_number')
+def previos_page_select_material(bot: Bot, **params):
+    material_page_number = params.get('material_page_number')
     page = int(material_page_number) - 1
-    kwargs['material_page_number'] = str(page)
-    select_worktype(bot, **kwargs)
+    params['material_page_number'] = str(page)
+    select_worktype(bot, **params)
+
+
+def input_count_materials_menu(bot: Bot, **params):
+    material_id = params.get('material_id')
+    material = Material.objects.get(id=material_id)
+    bot.send_message('Введите кол-во материалов ({})'.format(material.unit_measurement), bot.keyboard.clear_keyboard())
+    bot.user.save_state()
+
+
+def input_count_materials(bot: Bot, **params):
+    object_page_number = params.get('object_page_number')
+    object_id = params.get('object_id')
+    worktype_page_number = params.get('worktype_page_number')
+    worktype_id = params.get('worktype_id')
+    application_id = params.get('application_id')
+    material_page_number = params.get('material_page_number')
+    material_id = params.get('material_id')
+    material_count = params.get('material_count')
+    ApplicationMaterial.objects.create(material_id=material_id, application_id=application_id, count=material_count)
+    select_material(bot,
+                    object_page_number=object_page_number,
+                    object_id=object_id,
+                    worktype_page_number=worktype_page_number,
+                    worktype_id=worktype_id,
+                    application_id=application_id,
+                    material_page_number=material_page_number)
