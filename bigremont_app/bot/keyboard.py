@@ -66,7 +66,7 @@ class BotKeyboard(State):
         self.row('🏠 Главное меню')
 
     @keyboard
-    def materials(self, material_page: Page):
+    def materials(self, material_page: Page, added_materials):
         materials_keys = [str(material_object.id) for material_object in material_page.object_list]
         self.row(*materials_keys)
         if material_page.has_next() and material_page.has_previous():
@@ -75,7 +75,8 @@ class BotKeyboard(State):
             self.row('Следующая страница ▶️')
         elif material_page.has_previous():
             self.row('⬅️ Предыдущая страница')
-        self.row('✔️ Завершить выбор материалов')
+        if added_materials:
+            self.row('✔️ Завершить выбор материалов')
         self.row('🏠 Главное меню')
 
     def clear_keyboard(self):

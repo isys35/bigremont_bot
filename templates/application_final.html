@@ -1,0 +1,9 @@
+Заявка № <b>{{ application.id }}</b>
+🏡 Объект: <b>{{ object.name }}</b>
+👷 Тип работ: <b>{{ work_type.name }}</b>
+🛠 Материалы:
+{% for selected_material in selected_materials %}
+    • {{ selected_material.material.name }} {{ selected_material.count }} {{ selected_material.material.unit_measurement }}{% endfor %}
+
+🕓 Дата создания заявки: {{ application.date_create|date:"d.m.Y" }}
+🕓 Дата поставки: {{ application.date_of_delivery|date:"d.m.Y" }}

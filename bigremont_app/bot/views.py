@@ -1,5 +1,8 @@
+from datetime import datetime
+
 from django.core.paginator import Paginator
 from django.template.loader import render_to_string
+from telegram_bot_calendar import DetailedTelegramCalendar
 
 from bigremont_app.bot.bot import save_state, Bot
 from bigremont_app.models import RemontObject, WorkType, Material, Application, ApplicationMaterial
@@ -8,7 +11,13 @@ from bigremont_bot import settings
 
 @save_state("/")
 def welcome(bot: Bot, **kwargs):
-    message = "Добро пожаловать!"
+    message = render_to_string('welcome_message.html')
+    bot.send_message(message, bot.keyboard.main())
+
+
+@save_state("/")
+def main_menu(bot: Bot, **kwargs):
+    message = render_to_string('main_menu.html')
     bot.send_message(message, bot.keyboard.main())
 
 
@@ -91,7 +100,7 @@ def select_material(bot: Bot, **params):
                'added_materials': added_materials,
                'materials': paginator.page(page)}
     message = render_to_string('application.html', context=сontext)
-    bot.send_message(message, bot.keyboard.objects(paginator.page(page)))
+    bot.send_message(message, bot.keyboard.materials(paginator.page(page), added_materials))
     state = f'/выбрать объект/{object_page_number}/{object_id}/{worktype_page_number}/{worktype_id}/{application.id}/{page}'
     bot.user.save_state(state)
 
@@ -137,3 +146,35 @@ def input_count_materials(bot: Bot, **params):
                     worktype_id=worktype_id,
                     application_id=application_id,
                     material_page_number=material_page_number)
+
+
+def menu_select_date_of_delivery(bot: Bot, **params):
+    bot.send_message("Введите дату поставки в формате dd.mm.yyyy", bot.keyboard.clear_keyboard())
+    bot.user.save_state()
+
+
+def select_date_of_delivery(bot: Bot, **params):
+    date_of_delivery_str = params.get('date_of_delivery')
+    try:
+        date_of_delivery = datetime.strptime(date_of_delivery_str, "%d.%m.%Y")
+    except Exception:
+        bot.send_message('Не верно введён формат даты', bot.keyboard.clear_keyboard())
+        bot.user.request = ''
+        menu_select_date_of_delivery(bot, **params)
+        return
+    object_id = params.get('object_id')
+    worktype_id = params.get('worktype_id')
+    application_id = params.get('application_id')
+    materials = ApplicationMaterial.objects.filter(application_id=application_id).select_related('material')
+    remont_object = RemontObject.objects.get(id=object_id)
+    worktype = WorkType.objects.get(id=worktype_id)
+    application = Application.objects.get(id=application_id)
+    application.date_of_delivery = date_of_delivery
+    application.save()
+    сontext = {'object': remont_object,
+               'work_type': worktype,
+               'application': application,
+               'selected_materials': materials}
+    message = render_to_string('application_final.html', context=сontext)
+    bot.send_message(message, bot.keyboard.clear_keyboard())
+    main_menu(bot, **params)
