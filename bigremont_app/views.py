@@ -24,9 +24,13 @@ def webhook(request: WSGIRequest):
         update = UpdateTelegramSerializer(**json_data)
     except ValidationError as e:
         error_data = json.loads(e.json())
-        return JsonResponse(data=error_data, status=400, safe=False)
-    telegram_context = TelegramContext(settings.TELEGRAM_TOKEN)
-    bot = Bot(telegram_context, update)
-    router = Router(urls)
-    router.url_dispatcher(bot)
+        return JsonResponse(data=error_data, status=200, safe=False)
+    try:
+        telegram_context = TelegramContext(settings.TELEGRAM_TOKEN)
+        bot = Bot(telegram_context, update)
+        router = Router(urls)
+        router.url_dispatcher(bot)
+    except Exception as ex:
+        #raise ex
+        return JsonResponse(data={'error':str(ex)}, status=201)
     return JsonResponse(data={"success": True}, status=200)

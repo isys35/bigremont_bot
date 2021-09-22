@@ -18,5 +18,5 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('webhook/', include('bigremont_app.urls'))
+    path('webhook3/', include('bigremont_app.urls'))
 ]

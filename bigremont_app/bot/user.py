@@ -27,7 +27,7 @@ class User:
         self.initialized = False
 
     def create_user(self):
-        tg_user = TelegramUser(id=self.id,
+        tg_user = TelegramUser(pk=self.id,
                                username=self.update_handler.get_username())
         tg_user.save()
 
@@ -52,16 +52,18 @@ class User:
         self.create_user()
 
     def init_from_db(self):
-        tg_user = TelegramUser.objects.filter(id=self.update_handler.get_user_id())
+        tg_user = TelegramUser.objects.filter(pk=self.update_handler.get_user_id())
         if tg_user:
             tg_user = tg_user.first()
-            self.id = tg_user.id
+            self.id = tg_user.pk
             self.state = tg_user.state
             self._init_request()
             self.initialized = True
 
     def save(self):
-        TelegramUser.objects.update(id=self.id, state=self.state)
+        tg_user = TelegramUser.objects.get(id=self.id)
+        tg_user.state = self.state
+        tg_user.save()
 
     def save_state(self, new_state=None):
         if new_state is None:

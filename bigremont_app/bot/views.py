@@ -45,10 +45,10 @@ def previos_page_select_object(bot: Bot, object_page_number: str):
     select_object(bot, page)
 
 
-def select_worktype(bot: Bot, object_page_number: str, object_id: str, work_type_page_number: str = None):
+def select_worktype(bot: Bot, object_page_number: str, object_id: str, worktype_page_number: str = None):
     # TODO: Можно зарефакторить, но лучше это сделать после написания клааса для вьюх
     remont_object = RemontObject.objects.get(id=object_id)
-    page = work_type_page_number or 1
+    page = worktype_page_number or 1
     work_types = WorkType.objects.all().order_by('id')
     if not work_types:
         bot.send_message("В базе нету видов работ 😔", bot.keyboard.main())
@@ -62,13 +62,13 @@ def select_worktype(bot: Bot, object_page_number: str, object_id: str, work_type
     bot.user.save_state(f'/выбрать объект/{object_page_number}/{object_id}/{page}')
 
 
-def next_page_select_worktype(bot: Bot, object_page_number: str, object_id: str, work_type_page_number: str):
-    page = int(work_type_page_number) + 1
+def next_page_select_worktype(bot: Bot, object_page_number: str, object_id: str, worktype_page_number: str):
+    page = int(worktype_page_number) + 1
     select_worktype(bot, object_page_number, object_id, str(page))
 
 
-def previos_page_select_worktype(bot: Bot, object_page_number: str, object_id: str, work_type_page_number: str):
-    page = int(work_type_page_number) - 1
+def previos_page_select_worktype(bot: Bot, object_page_number: str, object_id: str, worktype_page_number: str):
+    page = int(worktype_page_number) - 1
     select_worktype(bot, object_page_number, object_id, str(page))
 
 
@@ -112,14 +112,14 @@ def next_page_select_material(bot: Bot, **params):
     material_page_number = params.get('material_page_number')
     page = int(material_page_number) + 1
     params['material_page_number'] = str(page)
-    select_worktype(bot, **params)
+    select_material(bot, **params)
 
 
 def previos_page_select_material(bot: Bot, **params):
     material_page_number = params.get('material_page_number')
     page = int(material_page_number) - 1
     params['material_page_number'] = str(page)
-    select_worktype(bot, **params)
+    select_material(bot, **params)
 
 
 def input_count_materials_menu(bot: Bot, **params):
