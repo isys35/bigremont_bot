@@ -2,7 +2,7 @@ from django.db import models
 
 
 class TelegramUser(models.Model):
-    username = models.CharField(max_length=100, db_index=True, default=None)
+    username = models.CharField(max_length=100, db_index=True, default=None, null=True, blank=True)
     state = models.CharField(max_length=200, default='/')
 
     def __str__(self):

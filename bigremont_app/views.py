@@ -18,6 +18,8 @@ from bigremont_app.serializers import UpdateTelegramSerializer
 @require_http_methods(["POST"])
 def webhook(request: WSGIRequest):
     json_data = json.loads(request.body)
+    with open('request.json', 'w') as json_file:
+        json.dump(json_data, json_file, indent=4)
     try:
         update = UpdateTelegramSerializer(**json_data)
     except ValidationError as e:
