@@ -2,9 +2,9 @@ from datetime import datetime
 
 from django.core.paginator import Paginator
 from django.template.loader import render_to_string
-from telegram_bot_calendar import DetailedTelegramCalendar
 
 from bigremont_app.bot.bot import save_state, Bot
+from bigremont_app.bot.utils import get_date_of_delivery_from_text
 from bigremont_app.models import RemontObject, WorkType, Material, Application, ApplicationMaterial, Recipient
 from bigremont_bot import settings
 
@@ -21,68 +21,41 @@ def main_menu(bot: Bot, **kwargs):
     bot.send_message(message, bot.keyboard.main())
 
 
-def select_object(bot: Bot, object_page_number=None, **kwargs):
-    page = object_page_number or 1
+def select_object(bot: Bot):
     objects = RemontObject.objects.all().order_by('id')
     if not objects:
         bot.send_message("В базе нету объектов 😔", bot.keyboard.main())
         bot.user.save_state("/")
         return
-    paginator = Paginator(objects, settings.PAGINATOR_SIZE)
-    context = {'objects': paginator.page(page)}
+    context = {'objects': objects}
     message = render_to_string('objects.html', context=context)
-    bot.send_message(message, bot.keyboard.objects(paginator.page(page)))
-    bot.user.save_state(f'/выбрать объект/{page}')
+    bot.send_message(message, bot.keyboard.objects(objects))
+    bot.user.save_state(f'/выбрать объект')
 
 
-def next_page_select_object(bot: Bot, object_page_number: str):
-    page = int(object_page_number) + 1
-    select_object(bot, page)
-
-
-def previos_page_select_object(bot: Bot, object_page_number: str):
-    page = int(object_page_number) - 1
-    select_object(bot, page)
-
-
-def select_worktype(bot: Bot, object_page_number: str, object_id: str, worktype_page_number: str = None):
+def select_worktype(bot: Bot, object_name: str):
     # TODO: Можно зарефакторить, но лучше это сделать после написания клааса для вьюх
-    remont_object = RemontObject.objects.get(id=object_id)
-    page = worktype_page_number or 1
     work_types = WorkType.objects.all().order_by('id')
     if not work_types:
         bot.send_message("В базе нету видов работ 😔", bot.keyboard.main())
         bot.user.save_state("/")
         return
-    paginator = Paginator(work_types, settings.PAGINATOR_SIZE)
-    сontext = {'object': remont_object,
-               'work_types': paginator.page(page)}
+    сontext = {'object': object_name,
+               'work_types': work_types}
     message = render_to_string('worktypes.html', context=сontext)
-    bot.send_message(message, bot.keyboard.objects(paginator.page(page)))
-    bot.user.save_state(f'/выбрать объект/{object_page_number}/{object_id}/{page}')
-
-
-def next_page_select_worktype(bot: Bot, object_page_number: str, object_id: str, worktype_page_number: str):
-    page = int(worktype_page_number) + 1
-    select_worktype(bot, object_page_number, object_id, str(page))
-
-
-def previos_page_select_worktype(bot: Bot, object_page_number: str, object_id: str, worktype_page_number: str):
-    page = int(worktype_page_number) - 1
-    select_worktype(bot, object_page_number, object_id, str(page))
+    bot.send_message(message, bot.keyboard.objects(work_types))
+    bot.user.save_state(f'/выбрать объект/{object_name}')
 
 
 def select_material(bot: Bot, **params):
-    object_page_number = params.get('object_page_number')
-    worktype_page_number = params.get('worktype_page_number')
-    object_id = params.get('object_id')
-    worktype_id = params.get('worktype_id')
+    object_name = params.get('object_name')
+    worktype_name = params.get('worktype_name')
     material_page_number = params.get('material_page_number')
     application_id = params.get('application_id')
-    remont_object = RemontObject.objects.get(id=object_id)
-    worktype = WorkType.objects.get(id=worktype_id)
+    remont_object = RemontObject.objects.filter(name__icontains=object_name).first()
+    worktype = WorkType.objects.filter(name__icontains=worktype_name).first()
     if not application_id:
-        application = Application.objects.create(remont_object_id=object_id, worktype_id=worktype_id)
+        application = Application.objects.create(remont_object_id=remont_object.id, worktype_id=worktype.id)
         added_materials = None
     else:
         application = Application.objects.get(id=application_id)
@@ -101,7 +74,7 @@ def select_material(bot: Bot, **params):
                'materials': paginator.page(page)}
     message = render_to_string('application.html', context=сontext)
     bot.send_message(message, bot.keyboard.materials(paginator.page(page), added_materials))
-    state = f'/выбрать объект/{object_page_number}/{object_id}/{worktype_page_number}/{worktype_id}/{application.id}/{page}'
+    state = f'/выбрать объект/{object_name}/{worktype_name}/{application.id}/{page}'
     bot.user.save_state(state)
 
 
@@ -130,43 +103,37 @@ def input_count_materials_menu(bot: Bot, **params):
 
 
 def input_count_materials(bot: Bot, **params):
-    object_page_number = params.get('object_page_number')
-    object_id = params.get('object_id')
-    worktype_page_number = params.get('worktype_page_number')
-    worktype_id = params.get('worktype_id')
+    object_name = params.get('object_name')
+    worktype_name = params.get('worktype_name')
     application_id = params.get('application_id')
     material_page_number = params.get('material_page_number')
     material_id = params.get('material_id')
     material_count = params.get('material_count')
     ApplicationMaterial.objects.create(material_id=material_id, application_id=application_id, count=material_count)
     select_material(bot,
-                    object_page_number=object_page_number,
-                    object_id=object_id,
-                    worktype_page_number=worktype_page_number,
-                    worktype_id=worktype_id,
+                    object_name=object_name,
+                    worktype_name=worktype_name,
                     application_id=application_id,
                     material_page_number=material_page_number)
 
 
 def menu_select_date_of_delivery(bot: Bot, **params):
-    bot.send_message("Введите дату поставки в формате dd.mm.yyyy", bot.keyboard.clear_keyboard())
-    bot.user.save_state('/выбрать объект/{object_page_number}/{object_id}/{worktype_page_number}/{worktype_id}/{application_id}/{material_page_number}/завершить выбор материалов'.format(**params))
+    bot.send_message("Введите дату поставки в формате dd.mm.yyyy или воспользуйтесь клавиатурой 👇", bot.keyboard.date_keyboard())
+    bot.user.save_state('/выбрать объект/{object_name}/{worktype_name}/{application_id}/{material_page_number}/завершить выбор материалов'.format(**params))
 
 
 def select_date_of_delivery(bot: Bot, **params):
     date_of_delivery_str = params.get('date_of_delivery')
-    try:
-        date_of_delivery = datetime.strptime(date_of_delivery_str, "%d.%m.%Y")
-    except Exception:
+    date_of_delivery = get_date_of_delivery_from_text(date_of_delivery_str)
+    if not date_of_delivery:
         bot.send_message('Не верно введён формат даты', bot.keyboard.clear_keyboard())
-        menu_select_date_of_delivery(bot, **params)
         return
-    object_id = params.get('object_id')
-    worktype_id = params.get('worktype_id')
+    object_name = params.get('object_name')
+    worktype_name = params.get('worktype_name')
     application_id = params.get('application_id')
     materials = ApplicationMaterial.objects.filter(application_id=application_id).select_related('material')
-    remont_object = RemontObject.objects.get(id=object_id)
-    worktype = WorkType.objects.get(id=worktype_id)
+    remont_object = RemontObject.objects.get(name__icontains=object_name)
+    worktype = WorkType.objects.get(name__icontains=worktype_name)
     application = Application.objects.get(id=application_id)
     application.date_of_delivery = date_of_delivery
     application.save()
