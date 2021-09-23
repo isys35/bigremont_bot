@@ -150,7 +150,7 @@ def input_count_materials(bot: Bot, **params):
 
 def menu_select_date_of_delivery(bot: Bot, **params):
     bot.send_message("Введите дату поставки в формате dd.mm.yyyy", bot.keyboard.clear_keyboard())
-    bot.user.save_state()
+    bot.user.save_state('/выбрать объект/{object_page_number}/{object_id}/{worktype_page_number}/{worktype_id}/{application_id}/{material_page_number}/завершить выбор материалов/'.format(**params))
 
 
 def select_date_of_delivery(bot: Bot, **params):
@@ -159,7 +159,6 @@ def select_date_of_delivery(bot: Bot, **params):
         date_of_delivery = datetime.strptime(date_of_delivery_str, "%d.%m.%Y")
     except Exception:
         bot.send_message('Не верно введён формат даты', bot.keyboard.clear_keyboard())
-        bot.user.request = ''
         menu_select_date_of_delivery(bot, **params)
         return
     object_id = params.get('object_id')
