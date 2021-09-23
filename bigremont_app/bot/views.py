@@ -127,6 +127,7 @@ def select_date_of_delivery(bot: Bot, **params):
     date_of_delivery = get_date_of_delivery_from_text(date_of_delivery_str)
     if not date_of_delivery:
         bot.send_message('Не верно введён формат даты', bot.keyboard.clear_keyboard())
+        menu_select_date_of_delivery(bot, **params)
         return
     object_name = params.get('object_name')
     worktype_name = params.get('worktype_name')
