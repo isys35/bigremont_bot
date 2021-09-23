@@ -150,7 +150,7 @@ def input_count_materials(bot: Bot, **params):
 
 def menu_select_date_of_delivery(bot: Bot, **params):
     bot.send_message("Введите дату поставки в формате dd.mm.yyyy", bot.keyboard.clear_keyboard())
-    bot.user.save_state('/выбрать объект/{object_page_number}/{object_id}/{worktype_page_number}/{worktype_id}/{application_id}/{material_page_number}/завершить выбор материалов/'.format(**params))
+    bot.user.save_state('/выбрать объект/{object_page_number}/{object_id}/{worktype_page_number}/{worktype_id}/{application_id}/{material_page_number}/завершить выбор материалов'.format(**params))
 
 
 def select_date_of_delivery(bot: Bot, **params):
