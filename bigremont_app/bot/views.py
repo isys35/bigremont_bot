@@ -5,7 +5,8 @@ from django.template.loader import render_to_string
 
 from bigremont_app.bot.bot import save_state, Bot
 from bigremont_app.bot.utils import get_date_of_delivery_from_text
-from bigremont_app.models import RemontObject, WorkType, Material, Application, ApplicationMaterial, Recipient
+from bigremont_app.models import RemontObject, WorkType, Material, Application, ApplicationMaterial, Recipient, \
+    RecipientGroup
 from bigremont_bot import settings
 
 
@@ -147,4 +148,7 @@ def select_date_of_delivery(bot: Bot, **params):
     recepients = Recipient.objects.all()
     for recepient in recepients:
         bot.context.send_message(recepient.telegram_user_id, message)
+    recepients_groups = RecipientGroup.objects.all()
+    for recepient in recepients_groups:
+        bot.context.send_message(recepient.telegram_group.tg_id, message)
     main_menu(bot, **params)

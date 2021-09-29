@@ -1,7 +1,7 @@
 import re
 
 from bigremont_app.bot.handlers import UpdateHandler
-from bigremont_app.models import TelegramUser
+from bigremont_app.models import TelegramUser, TelegramGroup
 from bigremont_app.serializers import UpdateTelegramSerializer
 
 
@@ -64,6 +64,11 @@ class User:
         tg_user = TelegramUser.objects.get(id=self.id)
         tg_user.state = self.state
         tg_user.save()
+
+    # TODO: нарушает принципп единой ответственности
+    def save_group(self):
+        TelegramGroup.objects.get_or_create(tg_id=self.update_handler.get_chat_id(),
+                                            title=self.update_handler.get_group_title())
 
     def save_state(self, new_state=None):
         if new_state is None:

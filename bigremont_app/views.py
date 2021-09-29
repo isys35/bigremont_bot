@@ -28,6 +28,8 @@ def webhook(request: WSGIRequest):
     try:
         telegram_context = TelegramContext(settings.TELEGRAM_TOKEN)
         bot = Bot(telegram_context, update)
+        if not bot.user:
+            return JsonResponse(data={'success': True}, status=201)
         router = Router(urls)
         router.url_dispatcher(bot)
     except Exception as ex:

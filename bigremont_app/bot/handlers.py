@@ -33,6 +33,18 @@ class HandlerInterface(ABC):
     def get_callback(self):
         pass
 
+    @abstractmethod
+    def get_chat_id(self):
+        pass
+
+    @abstractmethod
+    def get_chat_type(self):
+        pass
+
+    @abstractmethod
+    def get_group_title(self):
+        pass
+
 
 class MessageHandler(HandlerInterface):
 
@@ -59,6 +71,15 @@ class MessageHandler(HandlerInterface):
 
     def get_callback(self):
         return None
+
+    def get_chat_id(self):
+        return self.update.message.chat.id
+
+    def get_chat_type(self):
+        return self.update.message.chat.type
+
+    def get_group_title(self):
+        return self.update.message.chat.title
 
 
 class UpdateHandler(HandlerInterface):
@@ -89,3 +110,12 @@ class UpdateHandler(HandlerInterface):
 
     def get_callback(self):
         return self.handler.get_callback()
+
+    def get_chat_id(self):
+        return self.handler.get_chat_id()
+
+    def get_chat_type(self):
+        return self.handler.get_chat_type()
+
+    def get_group_title(self):
+        return self.handler.get_group_title()

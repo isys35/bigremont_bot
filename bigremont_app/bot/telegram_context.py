@@ -2,8 +2,6 @@ from typing import Union
 
 import telebot
 
-# from telegram_bot.user import User
-# from webhook.serializers import UpdateSerializer
 from telebot.types import ReplyKeyboardMarkup, InlineKeyboardMarkup, Message
 
 from bigremont_app.bot.user import User
@@ -78,6 +76,9 @@ class TelegramContext:
     @staticmethod
     def get_user(update: UpdateTelegramSerializer):
         user = User(update)
+        if user.update_handler.get_chat_type() == 'group':
+            user.save_group()
+            return
         user.init_from_db()
         if not user.initialized:
             user.init_from_update()

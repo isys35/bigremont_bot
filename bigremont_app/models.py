@@ -13,13 +13,40 @@ class TelegramUser(models.Model):
         verbose_name_plural = 'Пользователи бота'
 
 
+class TelegramGroup(models.Model):
+    tg_id = models.IntegerField(db_index=True, unique=True)
+    title = models.CharField(max_length=100, db_index=True, default=None, null=True, blank=True)
+
+    def __str__(self):
+        return f'{self.tg_id} {self.title}'
+
+    class Meta:
+        verbose_name = 'Группа'
+        verbose_name_plural = 'Группа'
+
+
 class Recipient(models.Model):
     telegram_user = models.OneToOneField(TelegramUser, verbose_name="пользователь бота", on_delete=models.CASCADE,
                                          unique=True)
 
+    def __str__(self):
+        return str(self.telegram_user)
+
     class Meta:
         verbose_name = 'Получатель заявок'
         verbose_name_plural = 'Получатели заявок'
+
+
+class RecipientGroup(models.Model):
+    telegram_group = models.OneToOneField(TelegramGroup, verbose_name="группа", on_delete=models.CASCADE,
+                                          unique=True)
+
+    def __str__(self):
+        return str(self.telegram_group)
+
+    class Meta:
+        verbose_name = 'Получатель заявок(Группа)'
+        verbose_name_plural = 'Получатели заявок(Группа)'
 
 
 class RemontObject(models.Model):
